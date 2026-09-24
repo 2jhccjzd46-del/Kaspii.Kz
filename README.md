@@ -1,1 +1,0 @@
-# Kaspii.Kz
