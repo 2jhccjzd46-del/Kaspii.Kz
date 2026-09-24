@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kaspi App Prototype</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .app-container {
+      position: relative;
+      width: 100%;
+      max-width: 430px; /* Размер экрана iPhone */
+      height: 100vh;
+      max-height: 932px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* Экраны скрыты по умолчанию */
+    .screen {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Прозрачные интерактивные кнопки */
+    .btn-transparent {
+      position: absolute;
+      background: rgba(0, 0, 0, 0); /* Абсолютно прозрачные */
+      border: none;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* --- ЭКРАН 1: ПИН-КОД --- */
+    .pin-grid {
+      position: absolute;
+      top: 42%;
+      left: 12%;
+      width: 76%;
+      height: 42%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .pin-btn {
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* --- ЭКРАН 2: ГЛАВНОЕ МЕНЮ --- */
+    #btn-transfers {
+      top: 30.5%;
+      left: 73%;
+      width: 22%;
+      height: 8%;
+    }
+
+    /* --- ЭКРАН 3: МЕНЮ ПЕРЕВОДОВ --- */
+    #btn-history-tab {
+      top: 7.5%;
+      left: 50%;
+      width: 46%;
+      height: 4.5%;
+    }
+
+    /* --- ЭКРАН 4: ИСТОРИЯ ПЕРЕВОДОВ --- */
+    .history-list {
+      position: absolute;
+      top: 28%;
+      left: 4%;
+      width: 92%;
+      height: 62%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .history-item-btn {
+      width: 100%;
+      height: 65px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Скрытый инпут для загрузки файлов */
+    #file-input {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Скрин 1: ПИН-код -->
+    <div id="screen-1" class="screen active">
+      <img src="IMG_9384.jpeg" alt="Пин-код">
+      <div class="pin-grid">
+        <button class="pin-btn" onclick="pressPin('1')"></button>
+        <button class="pin-btn" onclick="pressPin('2')"></button>
+        <button class="pin-btn" onclick="pressPin('3')"></button>
+        <button class="pin-btn" onclick="pressPin('4')"></button>
+        <button class="pin-btn" onclick="pressPin('5')"></button>
+        <button class="pin-btn" onclick="pressPin('6')"></button>
+        <button class="pin-btn" onclick="pressPin('7')"></button>
+        <button class="pin-btn" onclick="pressPin('8')"></button>
+        <button class="pin-btn" onclick="pressPin('9')"></button>
+        <div></div>
+        <button class="pin-btn" onclick="pressPin('0')"></button>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- Скрин 2: Главное меню -->
+    <div id="screen-2" class="screen">
+      <img src="93506373-9AB9-4C57-A44F-3AD35A21A289.jpeg" alt="Главная">
+      <button id="btn-transfers" class="btn-transparent" onclick="goToScreen(3)"></button>
+    </div>
+
+    <!-- Скрин 3: Меню переводов -->
+    <div id="screen-3" class="screen">
+      <img src="IMG_9393.jpeg" alt="Переводы">
+      <button id="btn-history-tab" class="btn-transparent" onclick="goToScreen(4)"></button>
+    </div>
+
+    <!-- Скрин 4: История переводов -->
+    <div id="screen-4" class="screen">
+      <img src="IMG_9394.jpeg" alt="История">
+      <div class="history-list">
+        <button class="history-item-btn" onclick="triggerFileUpload(1)"></button>
+        <button class="history-item-btn" onclick="triggerFileUpload(2)"></button>
+        <button class="history-item-btn" onclick="triggerFileUpload(3)"></button>
+        <button class="history-item-btn" onclick="triggerFileUpload(4)"></button>
+        <button class="history-item-btn" onclick="triggerFileUpload(5)"></button>
+      </div>
+    </div>
+
+  </div>
+
+  <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileSelect(event)">
+
+  <script>
+    let currentPin = "";
+    const targetPin = "8514";
+    const userFiles = {}; // Хранение прикрепленных файлов
+    let selectedTransactionId = null;
+
+    // Ввод ПИН-кода
+    function pressPin(digit) {
+      if (currentPin.length < 4) {
+        currentPin += digit;
+      }
+      
+      if (currentPin.length === 4) {
+        if (currentPin === targetPin) {
+          setTimeout(() => {
+            goToScreen(2);
+            currentPin = "";
+          }, 100);
+        } else {
+          alert("Неверный код доступа");
+          currentPin = "";
+        }
+      }
+    }
+
+    // Переключение экранов
+    function goToScreen(screenNumber) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(`screen-${screenNumber}`).classList.add('active');
+    }
+
+    // Обработка клика по транзакции
+    function triggerFileUpload(id) {
+      selectedTransactionId = id;
+      
+      // Если файл уже загружен, открываем его
+      if (userFiles[id]) {
+        window.open(userFiles[id], '_blank');
+      } else {
+        // Если файла нет, предлагаем загрузить
+        document.getElementById('file-input').click();
+      }
+    }
+
+    // Загрузка и сохранение файла
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file && selectedTransactionId) {
+        const fileURL = URL.createObjectURL(file);
+        userFiles[selectedTransactionId] = fileURL;
+        window.open(fileURL, '_blank');
+      }
+      event.target.value = ''; // Сброс инпута
+    }
+  </script>
+</body>
+</html>
